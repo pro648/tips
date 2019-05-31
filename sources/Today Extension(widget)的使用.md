@@ -263,8 +263,10 @@ Widget的生命周期非常短，几乎每次进入通知中心，`TodayViewCont
 
 在widget中，有以下两种模式用来显示数据：
 
-1. `compact`：Widget高度为110。
+1. `compact`：标准模式下，Widget高度为110；开启「更大字体」后，高度会随之变化。
 2. `expanded`：根据内容显示widget高度。
+
+> 感谢 [wolf调](https://www.jianshu.com/u/abf319bdd291) 指出compact mode 下 Widget 高度会随系统字体大小变化而变，并非固定 110。
 
 Widget根据当前所处状态决定右上角显示展开(Show More)还是折叠(Show Less)按钮。在compact mode，显示展开按钮；在expanded mode，显示折叠按钮。
 
@@ -281,7 +283,7 @@ Widget根据当前所处状态决定右上角显示展开(Show More)还是折叠
 
 `widgetLargestAvailableDisplayMode`属性指定widget支持的最大显示模式为`expanded`。
 
-- 当设置为`compact`时，app将只支持compact mode，不支持展开和折叠功能。widget高度固定为110。
+- 当设置为`compact`时，app将只支持compact mode，不支持展开和折叠功能。
 - 当设置为`expanded`时，app将同时支持compact mode和expanded mode，展开和折叠功能也将可用。
 
 > 在iOS 8和iOS 9中，系统并没有提供展开、折叠功能，而需要开发者根据内容高度调整约束实现。
