@@ -1,3 +1,5 @@
+> 这一篇文章不够全面，推荐查看我的另一篇文章：[URLSession详解](https://github.com/pro648/tips/wiki/URLSession%E8%AF%A6%E8%A7%A3)
+
 `NSURLSession`提供了一个可供通过网络下载内容的API，并且具有丰富的代理方法。在iOS中，`NSURLSession`支持在app未运行或挂起时进行后台下载。此外，`NSURLSession`原生的支持data、file、ftp、http和https URL方案，以及用户首选项中代理和socks网关。
 
 使用`NSURLSession`，你的app可以创建一个或多个会话，每一个会话协调一组数据传输任务。例如：你正在开发一个浏览器，你可以为每一个标签页或窗口创建一个会话，或者一个会话用于交互，一个会话用于后台下载。在每一个会话内，可以添加一系列任务，每一个任务代表对特定网址的请求。
