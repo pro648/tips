@@ -10,12 +10,17 @@ macOS和iOS不依赖线程，而是采用了异步（asynchronous）设计方案
 2. 在获取到的后台线程开始任务。
 3. 当任务执行完毕时通过回调通知调用者。
 
-在过去，如果没有满足需求的后台线程，就需要自己编写异步函数，创建、管理后台线程。现在，macOS和iOS提供以下技术支持异步执行任何任务，而不需要自己管理线程。
+在过去，如果没有满足需求的后台线程，就需要自己编写异步函数，创建、管理后台线程。这类多线程方案如下：
+
+- pthread：是一套通用的多线程API，由C语言编写。适用于Unix、Linux、Windows等系统，具有跨平台、可移植优点，但使用难度大，需开发者管理线程生命周期，平常几乎不使用。
+- NSThread：由 Objective-C 语言编写。使用简单，更加面向对象，可直接操作线程对象。生命周期由开发者控制，偶尔使用`NSThread`。
+
+现在，macOS和iOS提供以下技术支持异步执行任何任务，而不需要自己管理线程。
 
 - Grand Central Dispatch简称GCD ，GCD是基于C语言开发的，其结合了语言特点、运行时库（runtime library），可以为macOS、iOS、watchOS和tvOS系统上的多核设备提供系统级的并发支持，可以更好协调所有正在运行app的需求，并以均衡的方式分配可用资源。使用GCD时应用程序只需要定义需要执行的任务，然后交由系统执行，而不再需要创建线程。通过让系统管理线程，app获得了原线程编程方式无法实现的伸缩性，开发人员也可以实现更简单、更高效的编程模型。
-- 操作队列（Operation Queue）是Objective-C API，是在GCD之上实现了一些方便的功能，即`NSOperation`API是GCD的高级抽象。如果你在使用`NSOperation`，那么你在隐式使用GCD。使用`NSOperation`时只需要定义要执行的任务，将其添加到`NSOperation`队列即可，`NSOperation`负责这些任务的调度和执行。与GCD一样，`NSOperation`负责所有的线程管理，以确保系统、app尽可能高效的运行。`NSOperation`是基类，不能直接使用，一般使用其子类`NSOperationQueue`，也可以自定义子类。
+- 操作队列（Operation Queue）是Objective-C API，是在GCD之上实现了一些方便的功能，即`NSOperation`API是GCD的高级抽象。如果你在使用`NSOperation`，那么你在隐式使用GCD。使用`NSOperation`时只需要定义要执行的任务，将其添加到`NSOperationQueue`队列即可，`NSOperationQueue`负责这些任务的调度和执行。与GCD一样，`NSOperationQueue`负责所有的线程管理，以确保系统、app尽可能高效的运行。`NSOperation`是基类，不能直接使用，需继承后使用其子类，或使用系统提供的子类来执行任务。例如`NSInvocationOperation`和`NSBlockOperation`。如需了解更多，可以查看[Operation、OperationQueue的使用](https://github.com/pro648/tips/wiki/Operation%E3%80%81OperationQueue%E7%9A%84%E4%BD%BF%E7%94%A8)。
 
-在这一篇文章，只学习GCD的使用。
+这一篇文章只涉及GCD的使用。
 
 ## 1. GCD术语
 
@@ -109,7 +114,7 @@ GCD决定什么时间开始执行任务。如果两项任务执行时间重合�
 
 #### 3.1 获取主队列`dispatch_get_main_queue` 
 
-主队列是一个全局的串行队列，运行在应用程序的主线程上。主队列与run loop协同工作，交错执行主队列中任务和run loop中其他响应事件。
+主队列是一个全局的串行队列，运行在应用程序的主线程上。主队列与[run loop](https://github.com/pro648/tips/wiki/RunLoop%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%BF%9B%E9%98%B6)协同工作，交错执行主队列中任务和run loop中其他响应事件。
 
 ```
     // 获取主队列
@@ -120,7 +125,7 @@ GCD决定什么时间开始执行任务。如果两项任务执行时间重合�
 
 全局队列是并发队列。
 
-系统为每个应用程序提供了四个优先级不同的全局队列。因为这些队列是全局的，可以直接使用`dispatch_get_global_queue`函数请求队列，不需要显式创建。
+系统为每个应用程序提供了四个不同优先级的全局队列。因为这些队列是全局的，可以直接使用`dispatch_get_global_queue`函数请求队列，不需要显式创建。
 
 ```
     // 获取优先级为QOS_CLASS_USER_INITIATED的全局队列
@@ -162,10 +167,10 @@ GCD决定什么时间开始执行任务。如果两项任务执行时间重合�
 
 ## 4. 通过demo学习GCD
 
-由于这篇文章的目的是优化代码，以及从不同线程安全地调用代码，因此，你将通过下面网址下载一个模版文件。
+由于这篇文章的目的是优化代码，以及从不同线程安全地调用代码。因此，你将通过下面网址下载一个模版文件。
 
 Demo名称：GrandCentralDispatch模板  
-源码地址：<https://github.com/pro648/BasicDemos-iOS>
+源码地址：<https://github.com/pro648/BasicDemos-iOS/tree/master/GrandCentralDispatch模板>
 
 该模板文件是一个未优化、非线程安全的demo。在该demo内，可以通过相册或设定的网址获取图片，使用Core Image的`CIDetector`API为图片中的眼睛添加标记。
 
@@ -281,7 +286,7 @@ Demo名称：GrandCentralDispatch模板
 
 由于`if`语句不是线程安全的，多次调用会出现以下情况：一个线程（称为线程A）进入`if`语句，在`sharedManager`分配内存前进行了context switch，另一线程（称为线程B）进入了`if`语句，初始化了一个`sharedManager`并结束。当系统再次context switch回线程A时，会再次初始化一个`sharedManager`。目前为止，我们有两个单例对象，而这不是我们想要的。
 
-为强制实现上面的情况，更新`sharedManager`方法代码如下：
+为强制出现上面的情况，更新`sharedManager`方法代码如下：
 
 ```
 + (instancetype)sharedManager {
@@ -361,7 +366,7 @@ GrandCentralDispatch[1349:412376] Singleton has memory address at: <PhotoManager
 
 最后，移除`AppDelegate.m`中的`dispatch_async`部分代码，移除`sharedManager`方法内强制产生race condition的代码和`NSLog` 输出。
 
-> `dispatch_once`只是使共享的实例（即`sharedManager`）线程安全，而不会使类（即PhotoManager）线程安全，类中可能还会有其他critical section，如对数据操作部分。这些critical section也需要使用其他方式实现线程安全，比如使用synchronize方式访问数据。
+> `dispatch_once`只是使共享的实例（即`sharedManager`）线程安全，而不会使类（即PhotoManager）线程安全，类中可能还会有其他critical section，如对数据操作部分。这些critical section也需要使用其他方式实现线程安全，比如使用[synchronize](https://github.com/pro648/tips/wiki/%E7%BA%BF%E7%A8%8B%E5%90%8C%E6%AD%A5%E4%B9%8B%E8%87%AA%E6%97%8B%E9%94%81)方式访问数据。
 
 ## 8. 单例读写线程安全
 
@@ -835,7 +840,7 @@ Xcode中的测试是在XCTestCase子类上执行的，会运行任何以`test`�
 - 当要开始新任务时，任务的优先级Quality of Service会是一个参考要素。
 - Dispatch queues会复制添加到队列的块，并在完成时释放该块。也就是说，不需要先显式复制块，再提交到队列。因`dispatch_sync`同步执行任务，提交到`dispatch_sync`的块不会执行block_copy。
 - Dispatch queues自身是线程安全的。也就是说，你可以将任务从任何线程提交到dispatch queue，无需先锁定或同步对队列的访问。
-- 不用使用`dispatch_sync`将任务提交给当前队列，那样会产生死锁。如果需要将任务添加到当前队列，请使用`dispatch_async`。
+- 不要使用`dispatch_sync`将任务提交给当前队列，那样会产生死锁。如果需要将任务添加到当前队列，请使用`dispatch_async`。
 
 尽管`NSOperation`和dispatch queues是执行任务的首选方式，但你仍有可能需要创建自定义的线程。例如：必须实时（real time）运行的代码。GCD会尽可能快速运行任务，但其不是实时的。如果你确定需要自己创建线程，那么应当创建尽可能少的线程。
 
