@@ -11,6 +11,66 @@
 
 > 例如：对于atomic的对象，线程A调用getter，同时线程B、线程C都调用setter并设不同的值，最后线程A可能得到原来的值、也可能得到线程B、线程C设的值，只能够保证得到的是原始值、B线程设定的值、C线程设定的值三者中一个完整值，没有办法确定最终得到的是哪个值。如果线程D调用release，程序会崩溃。所以atomic只是read/write安全，不是thread安全。
 
+Runtime [objc-accessors.mm](https://opensource.apple.com/source/objc4/objc4-781/runtime/objc-accessors.mm.auto.html)文件包含了属性设值、取值源码，如下所示：
+
+```
+id objc_getProperty(id self, SEL _cmd, ptrdiff_t offset, BOOL atomic) {
+    if (offset == 0) {
+        return object_getClass(self);
+    }
+
+    // Retain release world
+    id *slot = (id*) ((char*)self + offset);
+    if (!atomic) return *slot;
+        
+    // Atomic retain release world
+    spinlock_t& slotlock = PropertyLocks[slot];
+    slotlock.lock();
+    id value = objc_retain(*slot);
+    slotlock.unlock();
+    
+    // for performance, we (safely) issue the autorelease OUTSIDE of the spinlock.
+    return objc_autoreleaseReturnValue(value);
+}
+
+static inline void reallySetProperty(id self, SEL _cmd, id newValue, ptrdiff_t offset, bool atomic, bool copy, bool mutableCopy)
+{
+    if (offset == 0) {
+        object_setClass(self, newValue);
+        return;
+    }
+
+    id oldValue;
+    id *slot = (id*) ((char*)self + offset);
+
+    if (copy) {
+        newValue = [newValue copyWithZone:nil];
+    } else if (mutableCopy) {
+        newValue = [newValue mutableCopyWithZone:nil];
+    } else {
+        if (*slot == newValue) return;
+        newValue = objc_retain(newValue);
+    }
+
+    if (!atomic) {
+        oldValue = *slot;
+        *slot = newValue;
+    } else {
+        spinlock_t& slotlock = PropertyLocks[slot];
+        slotlock.lock();
+        oldValue = *slot;
+        *slot = newValue;        
+        slotlock.unlock();
+    }
+
+    objc_release(oldValue);
+}
+```
+
+可以看到，`atomic`修饰的设值、取值方法使用了自旋锁，确保线程同步。
+
+虽然设值、取值方法是原子操作，但不代表是线程安全。例如，可变数组使用`atomic`修饰，只是取数组、设置数组是原子操作，但操作数组元素不再是线程安全。
+
 #### nonatomic 
 - 非默认属性。
 - 两个线程同时访问同一个属性将会导致无法预计的结果。
