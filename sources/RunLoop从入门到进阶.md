@@ -61,7 +61,7 @@ Run loop 从两种不同的源（source）接收事件：
 
 Run loop mode 集合包含了要监控的 input source、timer，以及要通知的 observer。每次启动 run loop 时需要显式或隐式指定其运行的 mode。在运行期间，仅监视与该 mode 关联的 source，且只允许与该 mode 关联的 source 传递事件，同时 run loop 的进度也只通知与该 mode 关联的 observer。与其他 mode 关联的 source 持有事件，直到运行其 mode。
 
-一个 run loop 包含若干个 mode，每个 mode 包含若干个 source、timer、observer。每次调用 run loop 函数时，只能指定一个 mode，这个 mode 被称作 currentMode。如果需要切换 mode，需退出 lool，重新进入要切换的 mode。这样做可以隔离不同组 source、timer、observer，让其互不影响。
+一个 run loop 包含若干个 mode，每个 mode 包含若干个 source、timer、observer。每次调用 run loop 函数时，只能指定一个 mode，这个 mode 被称作 currentMode。如果需要切换 mode，需退出 loop，重新进入要切换的 mode。这样做可以隔离不同组 source、timer、observer，让其互不影响。
 
 ![RunLoopMode](images/RunLoopMode.png)
 
@@ -131,6 +131,96 @@ Cocoa、Cocoa Touch、Core Foundation 内置支持使用 port-related 对象和�
 7. `cancelPreviousPerformRequestsWithTarget:`和`cancelPreviousPerformRequestsWithTarget:selector:object:`方法用于取消5、6两种方法提交的任务。该方法只取消当前 run loop 的请求，不是所有 run loop 的请求。
 
 > Source 有两个版本，Source0 和 Source1。Source1 基于 port 通信，用于捕捉系统事件。例如，点击屏幕。Source0 只包含一个回调，用于处理事件。performSelector 系列方法调用的 Source0 处理任务。
+
+上述系列`performSelector:`方法中，是否包含`afterDelay:`有着本质区别。查看`NSObject.mm`源码可以看到，没有`afterDelay:`是调用`objcMsgSend()`，如下所示：
+
+```
++ (id)performSelector:(SEL)sel {
+    if (!sel) [self doesNotRecognizeSelector:sel];
+    return ((id(*)(id, SEL))objc_msgSend)((id)self, sel);
+}
+
++ (id)performSelector:(SEL)sel withObject:(id)obj {
+    if (!sel) [self doesNotRecognizeSelector:sel];
+    return ((id(*)(id, SEL, id))objc_msgSend)((id)self, sel, obj);
+}
+
++ (id)performSelector:(SEL)sel withObject:(id)obj1 withObject:(id)obj2 {
+    if (!sel) [self doesNotRecognizeSelector:sel];
+    return ((id(*)(id, SEL, id, id))objc_msgSend)((id)self, sel, obj1, obj2);
+}
+
+- (id)performSelector:(SEL)sel {
+    if (!sel) [self doesNotRecognizeSelector:sel];
+    return ((id(*)(id, SEL))objc_msgSend)(self, sel);
+}
+
+- (id)performSelector:(SEL)sel withObject:(id)obj {
+    if (!sel) [self doesNotRecognizeSelector:sel];
+    return ((id(*)(id, SEL, id))objc_msgSend)(self, sel, obj);
+}
+
+- (id)performSelector:(SEL)sel withObject:(id)obj1 withObject:(id)obj2 {
+    if (!sel) [self doesNotRecognizeSelector:sel];
+    return ((id(*)(id, SEL, id, id))objc_msgSend)(self, sel, obj1, obj2);
+}
+```
+
+有`afterDelay:`时，`performSelector:withObject:afterDelay:`和`performSelector:withObject:afterDelay:inModes:`位于`NSRunLoop.h`文件中，如下所示：
+
+```
+/**************** 	Delayed perform	 ******************/
+
+@interface NSObject (NSDelayedPerforming)
+
+- (void)performSelector:(SEL)aSelector withObject:(nullable id)anArgument afterDelay:(NSTimeInterval)delay inModes:(NSArray<NSRunLoopMode> *)modes;
+- (void)performSelector:(SEL)aSelector withObject:(nullable id)anArgument afterDelay:(NSTimeInterval)delay;
++ (void)cancelPreviousPerformRequestsWithTarget:(id)aTarget selector:(SEL)aSelector object:(nullable id)anArgument;
++ (void)cancelPreviousPerformRequestsWithTarget:(id)aTarget;
+
+@end
+```
+
+即包含`afterDelay:`的`performSelector:`方法是向 runloop 中添加定时器。如果在子线程中调用`performSelector:withObject:afterDelay:`，会由于子线程默认没有启动 runloop，导致 selector 无法调用。如下所示：
+
+```
+- (void)testAfterDelay {
+    dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_UTILITY, 0);
+    
+    dispatch_async(queue, ^{
+        // 1. 相等于 objcMsgSend(self, @selector(test))，即[self test]，直接调用，可以输出 test 内容。
+        [self performSelector:@selector(test)];
+        
+        // 2. 相当于在当前线程添加计时器，由于全局队列线程默认没有 runloop，计时器不会被触发，不会输出 test 内容。
+        [self performSelector:@selector(test) withObject:NULL afterDelay:1.0];
+    });
+}
+
+- (void)test {
+    NSLog(@"%i %s", __LINE__, __PRETTY_FUNCTION__);
+}
+```
+
+在子线程手动开启 runloop 后，`performSelector:withObject:afterDelay:`将可以执行，如下所示：
+
+```
+- (void)testAfterDelay {
+    dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_UTILITY, 0);
+    
+    dispatch_async(queue, ^{        
+        // 2. 相当于在当前线程添加计时器，由于全局队列线程默认没有 runloop，计时器不会被触发，不会输出 test 内容。
+        [self performSelector:@selector(test) withObject:NULL afterDelay:1.0];
+        
+        // 3. 添加以下代码后，2的test会被调用。
+        [[NSRunLoop currentRunLoop] addPort:[[NSPort alloc] init] forMode:NSDefaultRunLoopMode];
+        [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
+    });
+}
+
+- (void)test {
+    NSLog(@"%i %s", __LINE__, __PRETTY_FUNCTION__);
+}
+```
 
 #### 3.3 Timer Source
 
@@ -472,11 +562,11 @@ CFRunLoopRef CFRunLoopGetCurrent(void) {
 
 采用超时自动结束是一种很好的方法，在退出前会通知所有 observer。使用`CFRunLoopStop()`函数终止 run loop  时，run loop 也会先通知所有 observer。
 
-虽然，移除 run loop 的 input source 和 timer 也可能导致 run loop 退出，但其并不可靠。系统可能将 input source 添加到 run loop 处理事件，而程序可能不知道这些 input source 的存在，而无法移除它们，这将导致 run loop 无法退出。
+虽然，移除 run loop 的 input source 和 timer 也可能导致 run loop 退出，但其并不可靠。系统可能将 input source 添加到 run loop 处理事件，程序可能不知道这些 input source 的存在，导致无法移除它们，这将导致 run loop 无法退出。
 
 #### 4.5 线程安全
 
-是否线程安全因所用 API 而已。通常，Core Foundation API 线程安全，可以从任意线程调用。但是，如果操作会更改 run loop 配置，在 run loop 所在线程进行更改是一种好习惯。
+是否线程安全因所用 API 而异。通常，Core Foundation API 线程安全，可以从任意线程调用。但是，如果操作会更改 run loop 配置，在 run loop 所在线程进行更改是一种好习惯。
 
 `NSRunLoop`不是线程安全的。如果要配置 run loop，只能在 run loop 所在线程进行更改。将属于其他线程的 input source、timer 添加到 run loop 会导致崩溃或不可预期的行为。
 
@@ -544,7 +634,7 @@ Core Foundation 的`CFRunLoopTimer`与 Cocoa Foundation 的`NSTimer`进行了免
     CFRunLoopAddTimer(runloop, cfTimer, kCFRunLoopCommonModes);
 ```
 
-> 每个 run loop timer 只能添加到一个 run loop，但可以添加到多个 mode。
+> 每个 run loop timer 只能添加到一个 run loop，但可以添加到多个 mode。如果你对Timer还不了解，可以查看我的另一篇文章：[Timer的使用](https://github.com/pro648/tips/wiki/Timer%E7%9A%84%E4%BD%BF%E7%94%A8)。
 
 ## 6. 系统使用 Run Loop 实现的功能
 
@@ -562,7 +652,7 @@ App 启动后，系统在主线程 run loop 里注册了两个 observer。
 
 Apple 注册了一个 source1（基于 mach-port）用来接收系统事件。当一个硬件事件（如触摸、锁屏、摇晃等）发生后，首先由`IOKit.framework`生成一个`IOHIDEvent`事件，并由 SpringBoard 接收。随后用 mach port 转发给对应 app。随后 source1 就会触发回调，并调用`_UIApplicationHandleEventQueue()`进行应用内分发。
 
-`_UIApplicationHandleEventQueue()`会把`IOHIDEvent`处理并包装成`UIEvent`进行处理分发，其中包括识别 UIG gesture、处理屏幕旋转、发送给`UIWindow`等。通常，`UIButton`点击、touchesBegin、move、end、cancel 事件都是在这个回调中完成的。
+`_UIApplicationHandleEventQueue()`会把`IOHIDEvent`处理并包装成`UIEvent`进行处理分发，其中包括识别 UIG esture、处理屏幕旋转、发送给`UIWindow`等。通常，`UIButton`点击、touchesBegin、move、end、cancel 事件都是在这个回调中完成的。
 
 #### 6.3 手势识别
 
