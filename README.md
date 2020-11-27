@@ -5,6 +5,7 @@ Demo下载点击[BasicDemos-iOS](https://github.com/pro648/BasicDemos-iOS)
 
 
 - [alpha、clearColor、opaque、hidden你能分清吗](https://github.com/pro648/tips/blob/master/sources/alpha%E3%80%81clearColor%E3%80%81opaque%E3%80%81hidden%E4%BD%A0%E8%83%BD%E5%88%86%E6%B8%85%E5%90%97.md)
+- [高斯模糊原理、以及如何使用UIVisualEffectView实现模糊效果](https://github.com/pro648/tips/blob/master/sources/%E9%AB%98%E6%96%AF%E6%A8%A1%E7%B3%8A%E5%8E%9F%E7%90%86%E3%80%81%E4%BB%A5%E5%8F%8A%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8UIVisualEffectView%E5%AE%9E%E7%8E%B0%E6%A8%A1%E7%B3%8A%E6%95%88%E6%9E%9C.md)
 - [iOS中定义属性时的atomic、nonatomic、copy、assign、strong、weak等几个特性的区别](https://github.com/pro648/tips/blob/master/sources/iOS%E4%B8%AD%E5%AE%9A%E4%B9%89%E5%B1%9E%E6%80%A7%E6%97%B6%E7%9A%84atomic%E3%80%81nonatomic%E3%80%81copy%E3%80%81assign%E3%80%81strong%E3%80%81weak%E7%AD%89%E5%87%A0%E4%B8%AA%E7%89%B9%E6%80%A7%E7%9A%84%E5%8C%BA%E5%88%AB.md)
 - [委托、通知传值的用法与区别](https://github.com/pro648/tips/blob/master/sources/%E5%A7%94%E6%89%98%E3%80%81%E9%80%9A%E7%9F%A5%E4%BC%A0%E5%80%BC%E7%9A%84%E7%94%A8%E6%B3%95%E4%B8%8E%E5%8C%BA%E5%88%AB.md)
 - [宏(#define)与常量(const)的使用](https://github.com/pro648/tips/blob/master/sources/%E5%AE%8F(%23define)%E4%B8%8E%E5%B8%B8%E9%87%8F(const)%E7%9A%84%E4%BD%BF%E7%94%A8.md)
