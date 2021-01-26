@@ -701,6 +701,8 @@ The name of the FIRST child was changed.
 
 键值观察和键值编码都是一种帮助建立更强大、更灵活、更高效的应用，可能刚接触时觉得很奇特，最后你会感觉这些很容易掌握。
 
+> 这篇文章只介绍了KVC、KVO的用法，如果你想要了解KVC、KVO的底层原理，请查看我的另一篇文章：[KVC、KVO的本质](https://github.com/pro648/tips/blob/master/sources/KVC%E3%80%81KVO%E7%9A%84%E6%9C%AC%E8%B4%A8.md)。
+
 文件名称：KVC&KVODemo    
 源码地址：<https://github.com/pro648/BasicDemos-iOS>
 
