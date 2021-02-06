@@ -141,7 +141,7 @@ App 进入后台计时器是否还会工作？为了解这个问题，在`update
 
 计时器与 run loop 配合使用，run loop 对计时器强引用。因此，在将计时器添加到 run loop 后，自己不必维护对计时器的强引用。想要在自己创建的线程上使用`Timer`，必须手动创建 run loop。如果你对 run loop 还不熟悉，可以查看[RunLoop从入门到进阶](https://github.com/pro648/tips/wiki/RunLoop%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%BF%9B%E9%98%B6)这篇文章。
 
-在调用`applicationDidFinishLaunching(_:)`方法时，主线程已经启动 run loop。`Timer`必须添加到 run loop 才可以工作，其中，下面三种方法创建的计时器默认添加到主线程的 default mode：
+在调用`applicationDidFinishLaunching(_:)`方法时，主线程已经启动 run loop。`Timer`必须添加到 run loop 才可以工作，其中，下面三种方法创建的计时器默认添加到当前线程的 default mode：
 
 - `scheduledTimer(withTimeInterval:repeats:block:)`
 - `scheduledTimer(withInterval:target:selector:userInfo:repeats)`
@@ -158,6 +158,19 @@ App 进入后台计时器是否还会工作？为了解这个问题，在`update
 主线程用于绘制用户界面、监听手势等。当主线程忙于其他工作时，滑动视图会出现掉帧。
 
 当滑动 table view 时，计时器会停止工作。这是因为此时主线程 run loop 进入了`tracking`mode，而使用scheduledTimer方法创建的计时器添加到了 run loop `default`mode。
+
+> 需要注意的是，`scheduledTimer`方式将 timer 添加到当前线程的 run loop，而非主线程的 run loop。如果当前线程没有手动添加 run loop，则计时器不会触发。
+>
+> ```
+>         DispatchQueue.global(qos: .userInteractive).async {
+>             // 添加到全局队列当前线程，由于当前线程没有runloop，下面计时器不会触发。
+>             Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { (timer) in
+>                 print(timer.fireDate.description)
+>             }
+>         }
+> ```
+>
+> GCD global 队列中线程没有使用 run loop，所以上述计时器不会触发。
 
 #### 4.2 使用 Run Loop Mode
 
@@ -371,6 +384,8 @@ func showCongratulationAnimation() {
 由于`CADisplayLink`需要 Objective-C selector方法，在`updateAnimation()`方法前添加了@objc。使用`CACurrentMediaTime`替换`Date()`。使用`CADisplayLink`暂停、终止动画，这样会将 displayLink 从 run loop 移除，并释放自身持有的 target。
 
 再次运行demo，其会比使用`Timer`更为顺畅。
+
+> 如果你对`CADisplayLink`不了解，可以查看我的另一篇文章：[计时器CADisplayLink](https://github.com/pro648/tips/blob/master/sources/%E8%AE%A1%E6%97%B6%E5%99%A8CADisplayLink.md)。
 
 Demo名称：Timer  
 源码地址：<https://github.com/pro648/BasicDemos-iOS/tree/master/Timer>
