@@ -513,6 +513,8 @@ handler 8
 
 块功能强大，可以让代码更有条理、易于控制，但对于某些任务，使用委托或其它编程方法可能更为高效。从现在开始，我们可以在代码中更多使用块，并在更高级别上利用Objective-C。
 
+这篇文章只介绍了 block 捕获变量、修改变量的基本用法。如果想要了解 block 本质及底层原理，请查看我的另一篇文章：[Block的本质](https://github.com/pro648/tips/blob/master/sources/Block的本质.md)。
+
 Demo名称：Block  
 源码地址：<https://github.com/pro648/BasicDemos-iOS>
 
