@@ -18,15 +18,15 @@
 
 图片绘制通常不是最影响性能的部分。图片很消耗内存，因此不太可能把所有需要显示的图片都保留在内存中，app 运行时需不断加载、释放图片。
 
-图片加载速度不仅受 CPU 制约，还受 *IO（Input/Output）*影响。磁盘读取速度比 RAM 慢很多，需谨慎管理加载，减少延迟。点击按钮到收到响应之间最大延迟约200ms，超过这个时长会有卡顿的感觉。
+图片加载速度不仅受 CPU 制约，还受 *IO（Input/Output）*影响。磁盘读取速度比 RAM 慢很多，需谨慎管理加载，减少延迟。点击按钮到收到响应之间最好不超过200ms，否则会有卡顿的感觉。
 
-有时不能把所有图片加载到内存中。比如，轮播的图片，图片可能有很多张，都加载到内存中太占用内存。更多时候图片来自网络，下载会很耗时，甚至失败。
+通常，不能把所有图片加载到内存中。例如，轮播的图片可能有很多张，都加载到内存中太占用内存。此外，很多时候图片来自网络，下载会很耗时，甚至失败。
 
 #### 1.1 加载线程
 
 [上一篇](https://github.com/pro648/tips/blob/master/sources/%E5%BD%B1%E5%93%8D%E5%8A%A8%E7%94%BB%E6%80%A7%E8%83%BD%E7%9A%84%E5%9B%A0%E7%B4%A0%E5%8F%8A%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%20Instruments%20%E6%A3%80%E6%B5%8B.md)文章的图片很小，直接在主线程进行了加载。如果直接在主线程加载大图，会导致主界面失去响应。滑动动画在主线程的`UITrackingRunLoopMode`执行，比在 render tree 执行的`CAAnimation`更容易出现卡顿。
 
-下面代码使用[UICollectionView]()实现了图片播放，在`collectionView(_:cellForItemAt:)`方法中使用主线程同步加载图片。如下所示：
+下面代码使用[UICollectionView](https://github.com/pro648/tips/blob/master/sources/UICollectionView%E5%8F%8A%E5%85%B6%E6%96%B0%E5%8A%9F%E8%83%BDdrag%20and%20drop.md)实现了图片播放，在`collectionView(_:cellForItemAt:)`方法中使用主线程同步加载图片。如下所示：
 
 ```
 class ImageIOViewController: BaseViewController {
@@ -158,7 +158,7 @@ extension ImageIOViewController: UICollectionViewDataSource {
 
 - 使用`UIImage(named:)`方法加载图片。与`UIImage(contentsOfFile:)`不同，`UIImage(named:)`加载后立即解码。`UIImage(named:)`加载图片有以下特点：
   - `UIImage(named:)`只加载 bundle 内图片，不适用于用户生成的、网络获取的图片。
-  - `UIImage(named:)`方法会自动缓存图片，后续使用时直接从内存读区。系统的按钮、背景等都是使用`UIImage(named:)`方法加载的图片。如果使用`UIImage(named:)`加载大图，系统可能移除界面控件图片缓存，当导航回这些界面时，需重新加载这些图片。使用单独缓存可以解耦图片缓存与 app 生命周期。
+  - `UIImage(named:)`方法会自动缓存图片，后续使用时直接从内存读取。系统的按钮、背景等都是使用`UIImage(named:)`方法加载的图片。如果使用`UIImage(named:)`加载大图，系统可能移除界面控件图片缓存，当导航回这些界面时，需重新加载这些图片。使用单独缓存可以解耦图片缓存与 app 生命周期。
   - `UIImage(named:)`缓存是私有的，不能查询图片是否在缓存中，也不能从缓存中移除不再使用的图片。
 - 为图层的`contents`属性设置图片，或为`UIImageview`的`image`属性赋值，但这些操作都必须在主线程进行，也就是不能用来解决性能问题。
 - 绕过`UIKit`框架，直接使用`ImageIO`框架。
