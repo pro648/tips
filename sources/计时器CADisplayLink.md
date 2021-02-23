@@ -173,6 +173,10 @@ iOS 中有多种方式管理 UI。可以使用`UIKit`框架的`UIView`动画更�
 Demo名称：CoreAnimation  
 源码地址：<https://github.com/pro648/BasicDemos-iOS/tree/master/CoreAnimation>
 
+> 上一篇：[图层时间CAMediaTiming](https://github.com/pro648/tips/blob/master/sources/%E5%9B%BE%E5%B1%82%E6%97%B6%E9%97%B4CAMediaTiming.md)
+>
+> 下一篇：[影响动画性能的因素及如何使用 Instruments 检测](https://github.com/pro648/tips/blob/master/sources/%E5%BD%B1%E5%93%8D%E5%8A%A8%E7%94%BB%E6%80%A7%E8%83%BD%E7%9A%84%E5%9B%A0%E7%B4%A0%E5%8F%8A%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%20Instruments%20%E6%A3%80%E6%B5%8B.md)
+
 参考资料：
 
 1. [CADisplayLink](https://developer.apple.com/documentation/quartzcore/cadisplaylink)
