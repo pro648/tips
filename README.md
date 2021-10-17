@@ -44,6 +44,12 @@ Demo下载点击[BasicDemos-iOS](https://github.com/pro648/BasicDemos-iOS)
 - [面向协议编程](https://github.com/pro648/tips/blob/master/sources/%E9%9D%A2%E5%90%91%E5%8D%8F%E8%AE%AE%E7%BC%96%E7%A8%8B.md)
 - [strong、weak和unowned的区别](https://github.com/pro648/tips/blob/master/sources/strong%E3%80%81weak%E5%92%8Cunowned%E7%9A%84%E5%8C%BA%E5%88%AB.md)
 
+### CoreGraphics
+
+- [CoreGraphics系列一：path](https://github.com/pro648/tips/blob/master/sources/CoreGraphics%E7%B3%BB%E5%88%97%E4%B8%80%EF%BC%9Apath.md)
+- [CoreGraphics系列二：gradient和context](https://github.com/pro648/tips/blob/master/sources/CoreGraphics%E7%B3%BB%E5%88%97%E4%BA%8C%EF%BC%9Agradient%E5%92%8Ccontext.md)
+- [CoreGraphics系列三：pattern和transparency layer](https://github.com/pro648/tips/blob/master/sources/CoreGraphics%E7%B3%BB%E5%88%97%E4%B8%89%EF%BC%9Apattern%E5%92%8Ctransparency%20layer.md)
+
 ### 数据库
 
 - [SQLite的使用一](https://github.com/pro648/tips/blob/master/sources/SQLite%E7%9A%84%E4%BD%BF%E7%94%A8%E4%B8%80.md)
