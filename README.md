@@ -43,6 +43,7 @@ Demo下载点击[BasicDemos-iOS](https://github.com/pro648/BasicDemos-iOS)
 - [五种常见流媒体协议](https://github.com/pro648/tips/blob/master/sources/%E4%BA%94%E7%A7%8D%E5%B8%B8%E8%A7%81%E6%B5%81%E5%AA%92%E4%BD%93%E5%8D%8F%E8%AE%AE.md)
 - [面向协议编程](https://github.com/pro648/tips/blob/master/sources/%E9%9D%A2%E5%90%91%E5%8D%8F%E8%AE%AE%E7%BC%96%E7%A8%8B.md)
 - [strong、weak和unowned的区别](https://github.com/pro648/tips/blob/master/sources/strong%E3%80%81weak%E5%92%8Cunowned%E7%9A%84%E5%8C%BA%E5%88%AB.md)
+- [map、filter、reduce的用法](https://github.com/pro648/tips/blob/master/sources/map%E3%80%81filter%E3%80%81reduce%E7%9A%84%E7%94%A8%E6%B3%95.md)
 
 ### CoreGraphics
 
