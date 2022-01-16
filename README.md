@@ -50,6 +50,7 @@ Demo下载点击[BasicDemos-iOS](https://github.com/pro648/BasicDemos-iOS)
 - [CoreGraphics系列一：path](https://github.com/pro648/tips/blob/master/sources/CoreGraphics%E7%B3%BB%E5%88%97%E4%B8%80%EF%BC%9Apath.md)
 - [CoreGraphics系列二：gradient和context](https://github.com/pro648/tips/blob/master/sources/CoreGraphics%E7%B3%BB%E5%88%97%E4%BA%8C%EF%BC%9Agradient%E5%92%8Ccontext.md)
 - [CoreGraphics系列三：pattern和transparency layer](https://github.com/pro648/tips/blob/master/sources/CoreGraphics%E7%B3%BB%E5%88%97%E4%B8%89%EF%BC%9Apattern%E5%92%8Ctransparency%20layer.md)
+- [图像下采样](https://github.com/pro648/tips/blob/master/sources/%E5%9B%BE%E5%83%8F%E4%B8%8B%E9%87%87%E6%A0%B7.md)
 
 ### 数据库
 
