@@ -113,6 +113,7 @@ Demo下载点击[BasicDemos-iOS](https://github.com/pro648/BasicDemos-iOS)
 - [Runtime从入门到进阶二](https://github.com/pro648/tips/blob/master/sources/Runtime%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%BF%9B%E9%98%B6%E4%BA%8C.md)
 - [RunLoop从入门到进阶](https://github.com/pro648/tips/blob/master/sources/RunLoop%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%BF%9B%E9%98%B6.md)
 - [Mach-O可执行文件](https://github.com/pro648/tips/blob/master/sources/Mach-O%E5%8F%AF%E6%89%A7%E8%A1%8C%E6%96%87%E4%BB%B6.md)
+- [地址空间布局随机化ASLR及iOS内核如何实现随机化](https://github.com/pro648/tips/blob/master/sources/%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E9%9A%8F%E6%9C%BA%E5%8C%96ASLR%E5%8F%8AiOS%E5%86%85%E6%A0%B8%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%9A%8F%E6%9C%BA%E5%8C%96.md)
 
 
 ### Texture:
