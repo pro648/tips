@@ -21,11 +21,31 @@ Touch event 对象包含与事件相关的 touch。Touch event 对象包含一�
 - touch 大致半径。
 - touch 压力大小（支持 3D Touch 或 Apple Pencil 的设备）。
 
-此外，touch 对象使用`timestamp`属性表示 touch 发生的时间，整数类型的`tapCount`属性表示点击屏幕的次数，`UITouch.Phase`属性表示处于began、moved、ended、canceled等阶段，
+此外，touch 对象使用`timestamp`属性表示 touch 发生的时间，该时间为[马赫时间](https://github.com/pro648/tips/blob/master/sources/%E5%9B%BE%E5%B1%82%E6%97%B6%E9%97%B4CAMediaTiming.md#2-%E6%97%B6%E9%97%B4%E5%B1%82%E7%BA%A7%E5%85%B3%E7%B3%BB)。另外，`timestamp`记录的是事件发生（.began）、改变（.move）的时间，事件发生与传递可能有delay，使用时需对比前后事件的timestamp，而非UTC时间。
+
+整数类型的`tapCount`属性表示点击屏幕的次数，`UITouch.Phase`属性表示处于began、moved、ended、cancelled等阶段。
 
 Touch 对象会在整个多点触控序列中存在。当处理多点触控序列时，可以引用 touch 对象，直到触控结束才释放。如果需要在多点触控序列外使用，需复制 touch 中的数据到自定义数据结构。
 
-`gestureRecognizers`属性包含了当前处理 touch 的手势。
+`gestureRecognizers`属性包含了当前处理 touch 的手势识别器。`UIGestureRecognizer`实现了`touchesBegan(_:with:)`、`touchesMoved(_:with)`、`touchesEnded(_:with)`、`touchesCancelled(_:with)`四个方法，但其并不是responder，也不参与响应链。但touch传递给view时，也会传递给view关联的gesture recognizer。如果view的父视图包含手势识别器，也会传递给父视图手势识别器。最终，传递给整个视图层级中的手势识别器。
+
+#### 2.1 Touch与Gesture Recognizer
+
+当touch首次创建并传递给gesture recognizer时，也会传递给hit-test视图，同时调用视图、手势识别器的`touchesBegan(_:with:)`方法。
+
+这样就不会因为gesture recognizer正在分析手势，导致view接收不到事件了。如果所有手势识别器都识别失败，则视图继续接收事件，就像手势识别器不曾存在一样。另外，gesture recognizer和touch是两种不同的机制，有时需要同时处理。例如，屏幕上添加了单击手势、双击手势，`touchesBegan(_:with:)`时还需改变触摸位置颜色，`touchesEnded(_:with:)`和`touchesCancelled(_:with:)`恢复颜色。想要处理这种场景，就需要同时接收touch事件。
+
+如果view的gesture recognizer识别成功，会给view发送`touchesCancelled(_:with:)`消息，随后该view不会再收到该touch事件。修改`cancelsTouchesInView`属性为false可以改变这一特点。如果把view的所有gesture recognizer的`cancelsTouchesInView`都改为false，则view可以接收完整的事件，就像gesture recognizer不存在一样。
+
+Gesture recognizer也可以延迟传递给view的touch事件，且默认开启。`UIGestureRecognizer`的`delaysTouchesEnded`属性默认为true。当touch变为`.end`状态时，会调用gesture recognizer的`touchesEnded(_:with:)`方法。此时，如果因gesture还处于`.possible`状态、touch事件仍在向view传递，则该touch事件不会被传递给view，直到gesture解析完毕手势。如果识别成功，调用view的`touchesCancelled(_:with)`；如果识别失败，调用view的`touchesEnded(_:with:)`。
+
+当处理多点触控时，这样设计的优势就体现出来了。例如双击手势，第一次点击结束，但不足以表明双击手势成功还是失败，手势识别器持有该touch。第二次点击成功后，向view发送`touchesCancelled(_:with:)`。如果view之前已经接收了`touchesEnded(_:with:)`，则不能实现这一点。手势识别器拥有优先识别权。
+
+将gesture recognizer的`delaysTouchesBegin`属性设置为true，可以延迟整个touch事件传递。如果手势识别成功，调用view的`touchesCancelled(_:with:)`方法；如果识别失败，调用view的`touchesBegan(_:with:)`，随后调用`touchesMoved(_:with:)`，但只会收到最后一次`touchesMoved(_:with:)`，因为发送队列中所有touch没有意义。
+
+touch延迟传递后，传递的还是原来的touch、event，`timestamps`还是事件触发的时间，不会因延迟而更新。
+
+> 如果你对gesture recognizer还不了解，可以查看我的另一篇文章：[手势控制：点击、滑动、平移、捏合、旋转、长按、轻扫](https://github.com/pro648/tips/blob/master/sources/%E6%89%8B%E5%8A%BF%E6%8E%A7%E5%88%B6%EF%BC%9A%E7%82%B9%E5%87%BB%E3%80%81%E6%BB%91%E5%8A%A8%E3%80%81%E5%B9%B3%E7%A7%BB%E3%80%81%E6%8D%8F%E5%90%88%E3%80%81%E6%97%8B%E8%BD%AC%E3%80%81%E9%95%BF%E6%8C%89%E3%80%81%E8%BD%BB%E6%89%AB.md)。
 
 ## 3. UIResponder
 
@@ -198,16 +218,16 @@ extension UIView{
         print(NSStringFromClass(type(of: self)) + "  " + #function)
         let result = pr_hitTest(point, with: event)
         if result != nil {
-            print((NSStringFromClass(type(of: self))) + " hitTesting return:" + NSStringFromClass(type(of: result!)))
+            print((NSStringFromClass(type(of: self))) + " pr_hitTesting return:" + NSStringFromClass(type(of: result!)))
         }
         
         return result
     }
     
     @objc public func pr_point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        print(NSStringFromClass(type(of: self)) + " --- pointInside")
+        print(NSStringFromClass(type(of: self)) + " --- pr_pointInside")
         let result = pr_point(inside: point, with: event)
-        print(NSStringFromClass(type(of: self)) + " pointInside +++ return: \(result)")
+        print(NSStringFromClass(type(of: self)) + " pr_pointInside +++ return: \(result)")
         return result
     }
 }
@@ -226,97 +246,102 @@ extension UIView{
 输出如下：
 
 ```
-UITextEffectsWindow  pr_hitTest(_:with:)
-UITextEffectsWindow --- pointInside
-UITextEffectsWindow pointInside +++ return: true
-UIInputSetContainerView  pr_hitTest(_:with:)
-UIEditingOverlayGestureView --- pointInside
-UIEditingOverlayGestureView pointInside +++ return: true
-UIEditingOverlayGestureView  pr_hitTest(_:with:)
-UIEditingOverlayGestureView --- pointInside
-UIEditingOverlayGestureView pointInside +++ return: true
-UIEditingOverlayGestureView hitTesting return:UIEditingOverlayGestureView
-UIInputSetHostView  pr_hitTest(_:with:)
-UIInputSetContainerView hitTesting return:UIInputSetContainerView
-UITextEffectsWindow hitTesting return:UITextEffectsWindow
-
 // hit-testing 时会调用point inside。
 UIWindow  pr_hitTest(_:with:)
-UIWindow --- pointInside
-UIWindow pointInside +++ return: true
-
+UIWindow --- pr_pointInside
+UIWindow pr_pointInside +++ return: true
 UITransitionView  pr_hitTest(_:with:)
-UITransitionView --- pointInside
-UITransitionView pointInside +++ return: true
+UITransitionView --- pr_pointInside
+UITransitionView pr_pointInside +++ return: true
 UIDropShadowView  pr_hitTest(_:with:)
-UIDropShadowView --- pointInside
-UIDropShadowView pointInside +++ return: true
+UIDropShadowView --- pr_pointInside
+UIDropShadowView pr_pointInside +++ return: true
 UILayoutContainerView  pr_hitTest(_:with:)
-UILayoutContainerView --- pointInside
-UILayoutContainerView pointInside +++ return: true
+UILayoutContainerView --- pr_pointInside
+UILayoutContainerView pr_pointInside +++ return: true
 UINavigationBar  pr_hitTest(_:with:)
-UINavigationBar --- pointInside
-UINavigationBar pointInside +++ return: false
+UINavigationBar --- pr_pointInside
+UINavigationBar pr_pointInside +++ return: false
 UINavigationTransitionView  pr_hitTest(_:with:)
-UINavigationTransitionView --- pointInside
-UINavigationTransitionView pointInside +++ return: true
+UINavigationTransitionView --- pr_pointInside
+UINavigationTransitionView pr_pointInside +++ return: true
 UIViewControllerWrapperView  pr_hitTest(_:with:)
-UIViewControllerWrapperView --- pointInside
-UIViewControllerWrapperView pointInside +++ return: true
+UIViewControllerWrapperView --- pr_pointInside
+UIViewControllerWrapperView pr_pointInside +++ return: true
 
 // UIView、ViewC、ViewB、ViewB2、ViewB1依次调用 hitTest。
 UIView  pr_hitTest(_:with:)
-UIView --- pointInside
-UIView pointInside +++ return: true
+UIView --- pr_pointInside
+UIView pr_pointInside +++ return: true
 ResponderChain.ViewC  pr_hitTest(_:with:)
-ResponderChain.ViewC --- pointInside
-ResponderChain.ViewC pointInside +++ return: false
+ResponderChain.ViewC --- pr_pointInside
+ResponderChain.ViewC pr_pointInside +++ return: false
 ResponderChain.ViewB  pr_hitTest(_:with:)
-ResponderChain.ViewB --- pointInside
-ResponderChain.ViewB pointInside +++ return: true
+ResponderChain.ViewB --- pr_pointInside
+ResponderChain.ViewB pr_pointInside +++ return: true
 ResponderChain.ViewB2  pr_hitTest(_:with:)
-ResponderChain.ViewB2 --- pointInside
-ResponderChain.ViewB2 pointInside +++ return: false
+ResponderChain.ViewB2 --- pr_pointInside
+ResponderChain.ViewB2 pr_pointInside +++ return: false
 ResponderChain.ViewB1  pr_hitTest(_:with:)
-ResponderChain.ViewB1 --- pointInside
-ResponderChain.ViewB1 pointInside +++ return: true
-ResponderChain.ViewB1 hitTesting return:ResponderChain.ViewB1
-ResponderChain.ViewB hitTesting return:ResponderChain.ViewB1
-UIView hitTesting return:ResponderChain.ViewB1
-UIViewControllerWrapperView hitTesting return:ResponderChain.ViewB1
-UINavigationTransitionView hitTesting return:ResponderChain.ViewB1
-UILayoutContainerView hitTesting return:ResponderChain.ViewB1
-UIDropShadowView hitTesting return:ResponderChain.ViewB1
-UITransitionView hitTesting return:ResponderChain.ViewB1
+ResponderChain.ViewB1 --- pr_pointInside
+ResponderChain.ViewB1 pr_pointInside +++ return: true
+ResponderChain.ViewB1 pr_hitTesting return:ResponderChain.ViewB1
+ResponderChain.ViewB pr_hitTesting return:ResponderChain.ViewB1
+UIView pr_hitTesting return:ResponderChain.ViewB1
+UIViewControllerWrapperView pr_hitTesting return:ResponderChain.ViewB1
+UINavigationTransitionView pr_hitTesting return:ResponderChain.ViewB1
+UILayoutContainerView pr_hitTesting return:ResponderChain.ViewB1
+UIDropShadowView pr_hitTesting return:ResponderChain.ViewB1
+UITransitionView pr_hitTesting return:ResponderChain.ViewB1
 
 // 再次执行 hit-Testing
-UIWindow hitTesting return:ResponderChain.ViewB1
+UIWindow pr_hitTesting return:ResponderChain.ViewB1
 UIWindow  pr_hitTest(_:with:)
-UIWindow --- pointInside
-UIWindow pointInside +++ return: true
+UIWindow --- pr_pointInside
+UIWindow pr_pointInside +++ return: true
 UITransitionView  pr_hitTest(_:with:)
-UITransitionView --- pointInside
-UITransitionView pointInside +++ return: true
+UITransitionView --- pr_pointInside
+UITransitionView pr_pointInside +++ return: true
 UIDropShadowView  pr_hitTest(_:with:)
-UIDropShadowView --- pointInside
-UIDropShadowView pointInside +++ return: true
+UIDropShadowView --- pr_pointInside
+UIDropShadowView pr_pointInside +++ return: true
 UILayoutContainerView  pr_hitTest(_:with:)
-UILayoutContainerView --- pointInside
-UILayoutContainerView pointInside +++ return: true
+UILayoutContainerView --- pr_pointInside
+UILayoutContainerView pr_pointInside +++ return: true
 UINavigationBar  pr_hitTest(_:with:)
-UINavigationBar --- pointInside
-UINavigationBar pointInside +++ return: false
+UINavigationBar --- pr_pointInside
+UINavigationBar pr_pointInside +++ return: false
 UINavigationTransitionView  pr_hitTest(_:with:)
-UINavigationTransitionView --- pointInside
-UINavigationTransitionView pointInside +++ return: true
+UINavigationTransitionView --- pr_pointInside
+UINavigationTransitionView pr_pointInside +++ return: true
 UIViewControllerWrapperView  pr_hitTest(_:with:)
-UIViewControllerWrapperView --- pointInside
-UIViewControllerWrapperView pointInside +++ return: true
+UIViewControllerWrapperView --- pr_pointInside
+UIViewControllerWrapperView pr_pointInside +++ return: true
 UIView  pr_hitTest(_:with:)
-UIView --- pointInside
-UIView pointInside +++ return: true
+UIView --- pr_pointInside
+UIView pr_pointInside +++ return: true
 ResponderChain.ViewC  pr_hitTest(_:with:)
-...
+ResponderChain.ViewC --- pr_pointInside
+ResponderChain.ViewC pr_pointInside +++ return: false
+ResponderChain.ViewB  pr_hitTest(_:with:)
+ResponderChain.ViewB --- pr_pointInside
+ResponderChain.ViewB pr_pointInside +++ return: true
+ResponderChain.ViewB2  pr_hitTest(_:with:)
+ResponderChain.ViewB2 --- pr_pointInside
+ResponderChain.ViewB2 pr_pointInside +++ return: false
+ResponderChain.ViewB1  pr_hitTest(_:with:)
+ResponderChain.ViewB1 --- pr_pointInside
+ResponderChain.ViewB1 pr_pointInside +++ return: true
+ResponderChain.ViewB1 pr_hitTesting return:ResponderChain.ViewB1
+ResponderChain.ViewB pr_hitTesting return:ResponderChain.ViewB1
+UIView pr_hitTesting return:ResponderChain.ViewB1
+UIViewControllerWrapperView pr_hitTesting return:ResponderChain.ViewB1
+UINavigationTransitionView pr_hitTesting return:ResponderChain.ViewB1
+UILayoutContainerView pr_hitTesting return:ResponderChain.ViewB1
+UIDropShadowView pr_hitTesting return:ResponderChain.ViewB1
+UITransitionView pr_hitTesting return:ResponderChain.ViewB1
+UIWindow pr_hitTesting return:ResponderChain.ViewB1
+
 ```
 
 从日志中可以看到，首先是`UIWindow`开始调用 hitTest，然后是导航控制器视图、根视图，之后是ViewC，ViewC返回 false后，开始遍历ViewB，ViewB返回 ture 后，先遍历 ViewB2，ViewB2 返回 false 后才遍历 ViewB1，最终返回 ViewB1。
@@ -442,6 +467,76 @@ extension RouterEventVC {
 ```
 
 这样就可以将点击firstButton、secondButton的响应方法集中在 RouterEventVC 中处理。点击 firstButton 时，触发`routerEvent(with: "firstButton", userInfo: [:])`方法，此时将事件转发给`UITableViewCell`；由于 cell 没有处理事件，cell 将事件转发给`UITableView`处理；由于`UITableView`没有处理事件，table view 将事件转发给 RouterEventVC 的根视图`UIView`；由于`UIView`没有处理事件，它将事件转发给 RouterEventVC，RouterEventVC 已经处理了事件，不再进行转发。最后，也就由视图控制器统一处理。
+
+#### 6.3 可点击区域为三角形
+
+如果在矩形视图中绘制了一个三角形，点击三角形外的矩形区域也可响应。这是因为hit test不了解绘制内容，以及绘制内容是否透明等。
+
+如果知道内容是如何绘制的，可以创建出边界`CGPath`，通过`contains(_:using:transform:)`查看point是否在path内。如下所示：
+
+```
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        guard let result = super.hitTest(point, with: event) else { return nil}
+        
+        if result != self {
+            return result
+        }
+        
+        if bezierPath.contains(point) {
+            return result
+        } else {
+            return nil
+        }
+    }
+```
+
+`bezierPath`是绘制三角形的path。运行后如下所示：
+
+![Triangle](images/ResponderChainTriangle.gif)
+
+可以看到，只有点击三角形内区域时，才会触发`UIButton`的touch up inside。
+
+#### 6.4 动画过程中可响应手势
+
+使用`UIView`的类方法添加的动画，动画过程中视图不可交互。因为用户看到的是presentation layer，而视图所处位置是model layer。
+
+开启了`.allowUserInteraction`后，动画过程中用户点击看到的视图并不会响应，而点击目标位置会出发视图的响应事件。因此，`UIView`类方法的视图动画默认禁用了交互。
+
+如果想要点击动画视图，可以hit-test presentation layer。如下所示：
+
+```
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let presentationLayer = layer.presentation()
+        let superPoint = convert(point, to: superview)
+        guard let prespt = superview?.layer.convert(superPoint, to: presentationLayer) else {
+            return super.hitTest(point, with: event)
+        }
+
+        let hitView = super.hitTest(prespt, with: event)
+        return hitView
+    }
+```
+
+虽然，上述方法可以实现点击动画视图，但视图会独享touch事件。例如，动画视图是`UIButton`，button动画过程中可以点击，也会高亮，但不会触发button的action，但可以通过给button添加手势解决该问题。
+
+iOS 10中新增加的`UIViewPropertyAnimator`默认开启了`isUserInteractionEnabled`，即视图动画过程中可交互。property animator会hit-test动画视图的presentation layer，动画的视图也不会独享touch事件。下面使用property animator给button添加平移动画：
+
+```
+        let propertyAnimator = UIViewPropertyAnimator(duration: 10, curve: .linear) {
+            self.button.center = goal
+        }
+        propertyAnimator.startAnimation()
+```
+
+借助`UIViewPropertyAnimator`，视图动画可以由用户中断、恢复。如果你还不了解`UIViewPropertyAnimator`，可以查看我的另一篇文章：[UIViewPropertyAnimator的使用](https://github.com/pro648/tips/blob/master/sources/UIViewPropertyAnimator%E7%9A%84%E4%BD%BF%E7%94%A8.md)。
+
+#### 6.5 UIGestureRecognizer与UIControl
+
+当视图已经能处理的手势与手势识别器手势相同时会产生冲突，如`UIControl`，特别是gesture recognizer添加到了`UIControl`的父视图。`UIControl`并不会阻塞父视图的手势识别器识别手势，即使`UIControl`自身能够处理该touch事件。例如，window的根视图添加了`UITapGestureRecognizer`，根视图上还添加了`UIButton`，点击button时点击手势会响应吗？
+
+`UIView`的实例方法`gestureRecognizerShouldBegin(_:)`解决了该问题。该方法的参数为`UIGestureRecognizer`类型，通过判断手势识别器类型、是否属于当前视图决定是否禁用该手势识别器。`UIButton`重写该方法时，为`UITapGestureRecognizer`返回`false`禁用点击手势。`UIKit`中`UISlider`、`UISwitch`等控件均重写了`gestureRecognizerShouldBegin(_:)`方法。
+
+另外，还可以通过实现`UIGestureRecognizerDelegate`协议，解决手势冲突问题。
 
 ## 总结
 
