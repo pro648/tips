@@ -149,6 +149,7 @@ Demo下载点击[BasicDemos-iOS](https://github.com/pro648/BasicDemos-iOS)
 
 - [单一职责原则](https://github.com/pro648/tips/blob/master/sources/%E5%8D%95%E4%B8%80%E8%81%8C%E8%B4%A3%E5%8E%9F%E5%88%99.md)
 - [开闭原则](https://github.com/pro648/tips/blob/master/sources/%E5%BC%80%E9%97%AD%E5%8E%9F%E5%88%99.md)
+- [里氏替换原则](https://github.com/pro648/tips/blob/master/sources/%E9%87%8C%E6%B0%8F%E6%9B%BF%E6%8D%A2%E5%8E%9F%E5%88%99.md)
 
 
 ### 工具
