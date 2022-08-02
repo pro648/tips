@@ -151,6 +151,7 @@ Demo下载点击[BasicDemos-iOS](https://github.com/pro648/BasicDemos-iOS)
 - [开闭原则](https://github.com/pro648/tips/blob/master/sources/%E5%BC%80%E9%97%AD%E5%8E%9F%E5%88%99.md)
 - [里氏替换原则](https://github.com/pro648/tips/blob/master/sources/%E9%87%8C%E6%B0%8F%E6%9B%BF%E6%8D%A2%E5%8E%9F%E5%88%99.md)
 - [接口隔离原则](https://github.com/pro648/tips/blob/master/sources/%E6%8E%A5%E5%8F%A3%E9%9A%94%E7%A6%BB%E5%8E%9F%E5%88%99.md)
+- [依赖反转原则](https://github.com/pro648/tips/blob/master/sources/%E4%BE%9D%E8%B5%96%E5%8F%8D%E8%BD%AC%E5%8E%9F%E5%88%99.md)
 
 
 ### 工具
