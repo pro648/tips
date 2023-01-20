@@ -49,6 +49,7 @@ Demo下载点击[BasicDemos-iOS](https://github.com/pro648/BasicDemos-iOS)
 - [strong、weak和unowned的区别](https://github.com/pro648/tips/blob/master/sources/strong%E3%80%81weak%E5%92%8Cunowned%E7%9A%84%E5%8C%BA%E5%88%AB.md)
 - [map、filter、reduce的用法](https://github.com/pro648/tips/blob/master/sources/map%E3%80%81filter%E3%80%81reduce%E7%9A%84%E7%94%A8%E6%B3%95.md)
 - [struct和class区别](https://github.com/pro648/tips/blob/master/sources/struct%E5%92%8Cclass%E5%8C%BA%E5%88%AB.md)
+- [enum内存布局](https://github.com/pro648/tips/blob/master/sources/enum%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80.md)
 - [Swift方法调用](https://github.com/pro648/tips/blob/master/sources/Swift%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8.md)
 
 ### CoreGraphics
