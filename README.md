@@ -53,6 +53,7 @@ Demo下载点击[BasicDemos-iOS](https://github.com/pro648/BasicDemos-iOS)
 - [Swift指针的使用](https://github.com/pro648/tips/blob/master/sources/Swift%E6%8C%87%E9%92%88%E7%9A%84%E4%BD%BF%E7%94%A8.md)
 - [NSCache的使用](https://github.com/pro648/tips/blob/master/sources/NSCache%E7%9A%84%E4%BD%BF%E7%94%A8.md)
 - [Swift方法调用](https://github.com/pro648/tips/blob/master/sources/Swift%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8.md)
+- [协议、泛型和Existential Container](https://github.com/pro648/tips/blob/master/sources/%E5%8D%8F%E8%AE%AE%E3%80%81%E6%B3%9B%E5%9E%8B%E5%92%8CExistential%20Container.md)
 
 ### CoreGraphics
 
