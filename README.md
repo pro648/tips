@@ -43,6 +43,7 @@ Demo下载点击[BasicDemos-iOS](https://github.com/pro648/BasicDemos-iOS)
 - [HTTP Live Streaming 详解](https://github.com/pro648/tips/blob/master/sources/HTTP%20Live%20Streaming%20%E8%AF%A6%E8%A7%A3.md)
 - [五种常见流媒体协议](https://github.com/pro648/tips/blob/master/sources/%E4%BA%94%E7%A7%8D%E5%B8%B8%E8%A7%81%E6%B5%81%E5%AA%92%E4%BD%93%E5%8D%8F%E8%AE%AE.md)
 - [Crash日志符号化](https://github.com/pro648/tips/blob/master/sources/Crash%E6%97%A5%E5%BF%97%E7%AC%A6%E5%8F%B7%E5%8C%96.md)
+- [静态库和动态库对比](https://github.com/pro648/tips/blob/master/sources/%E9%9D%99%E6%80%81%E5%BA%93%E5%92%8C%E5%8A%A8%E6%80%81%E5%BA%93%E5%AF%B9%E6%AF%94.md)
 
 ### Swift
 
