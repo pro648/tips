@@ -56,6 +56,7 @@ Demo下载点击[BasicDemos-iOS](https://github.com/pro648/BasicDemos-iOS)
 - [enum内存布局](https://github.com/pro648/tips/blob/master/sources/enum%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80.md)
 - [Swift指针的使用](https://github.com/pro648/tips/blob/master/sources/Swift%E6%8C%87%E9%92%88%E7%9A%84%E4%BD%BF%E7%94%A8.md)
 - [NSCache的使用](https://github.com/pro648/tips/blob/master/sources/NSCache%E7%9A%84%E4%BD%BF%E7%94%A8.md)
+- [Swift编、解码协议Codable](https://github.com/pro648/tips/blob/master/sources/Swift%E7%BC%96%E3%80%81%E8%A7%A3%E7%A0%81%E5%8D%8F%E8%AE%AECodable.md)
 - [Swift方法调用](https://github.com/pro648/tips/blob/master/sources/Swift%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8.md)
 - [协议、泛型和Existential Container](https://github.com/pro648/tips/blob/master/sources/%E5%8D%8F%E8%AE%AE%E3%80%81%E6%B3%9B%E5%9E%8B%E5%92%8CExistential%20Container.md)
 
